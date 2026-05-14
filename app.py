@@ -16,7 +16,7 @@ def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
     except Exception:
-        base_path = os.path.abspath(".")
+        base_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_path, relative_path)
 
 class DenseWithQuantization(tf.keras.layers.Dense):
@@ -31,7 +31,7 @@ except Exception as e:
     if 'quantization_config' in str(e):
         try:
             model = tf.keras.models.load_model(
-                'modelo74.h5',
+                resource_path('modelo74.h5'),
                 custom_objects={'Dense': DenseWithQuantization},
                 compile=False
             )
@@ -487,7 +487,7 @@ class OdontogramApp:
                     0: {},
                     1: {"O": "#FF5722"},    # Rojo - Sarro
                     2: {"O": "#FFC107"},    # Amarillo - Mancha
-                    3: {"V": "#2196F3"}     # Azul - Otro
+                    3: {"O": "#2196F3"}     # Azul - Otro (oclusal)
                 }
                 marks = class_to_marks.get(clase, {})
                 marks_by_tooth[num] = marks
