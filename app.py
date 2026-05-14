@@ -9,6 +9,8 @@ from matplotlib.patches import Rectangle
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import tensorflow as tf
+from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
+from tensorflow.keras.models import Model
 import sys
 import os
 
@@ -24,14 +26,24 @@ class DenseWithQuantization(tf.keras.layers.Dense):
         super().__init__(*args, **kwargs)
         self.quantization_config = quantization_config
 
+# Cargar modelo VGG16 para extracción de características
+try:
+    base_model = VGG16(weights='imagenet', include_top=True)
+    feature_extractor = Model(inputs=base_model.input,
+                              outputs=base_model.get_layer('fc2').output)
+    print("Modelo VGG16 cargado correctamente para extracción de características")
+except Exception as e:
+    feature_extractor = None
+    print(f"Error cargando modelo VGG16: {e}")
+
 # Cargar el modelo H5
 try:
-    model = tf.keras.models.load_model(resource_path('modelo74.h5'), compile=False)
+    model = tf.keras.models.load_model(resource_path('modelo69.h5'), compile=False)
 except Exception as e:
     if 'quantization_config' in str(e):
         try:
             model = tf.keras.models.load_model(
-                resource_path('modelo74.h5'),
+                resource_path('modelo69.h5'),
                 custom_objects={'Dense': DenseWithQuantization},
                 compile=False
             )
@@ -602,14 +614,31 @@ class OdontogramApp:
         
         # Predict
         predicted_class = 0
-        if model is not None:
+        if model is not None and feature_extractor is not None:
             try:
+                # Preprocesar imagen para VGG16
+                crop_vgg = cv2.resize(crop, (224, 224))
+                crop_vgg = cv2.cvtColor(crop_vgg, cv2.COLOR_BGR2RGB)
+                crop_vgg = preprocess_input(np.expand_dims(crop_vgg, axis=0))
+                
+                # Extraer características con VGG16
+                features = feature_extractor.predict(crop_vgg, verbose=0)
+                
+                # Usar características como entrada para el modelo entrenado
+                prediction = model.predict(features, verbose=0)
+                predicted_class = np.argmax(prediction[0])
+            except Exception as e:
+                print(f"Error en predicción: {e}")
+        elif model is not None:
+            try:
+                # Fallback: usar el método original si VGG16 falla
                 crop_resized = cv2.resize(crop, (128, 128))
                 crop_norm = np.expand_dims(crop_resized, axis=0) / 255.0
                 prediction = model.predict(crop_norm, verbose=0)
                 predicted_class = np.argmax(prediction[0])
+                print("Usando método de predicción original (sin extracción de características)")
             except Exception as e:
-                print(f"Error en predicción: {e}")
+                print(f"Error en predicción fallback: {e}")
         
         # Pedir número del diente con validación mejorada
         num = simpledialog.askinteger("Número FDI", 
