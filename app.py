@@ -26,7 +26,6 @@ class DenseWithQuantization(tf.keras.layers.Dense):
         super().__init__(*args, **kwargs)
         self.quantization_config = quantization_config
 
-# Cargar modelo VGG16 para extracción de características
 try:
     base_model = VGG16(weights='imagenet', include_top=True)
     feature_extractor = Model(inputs=base_model.input,
@@ -36,7 +35,6 @@ except Exception as e:
     feature_extractor = None
     print(f"Error cargando modelo VGG16: {e}")
 
-# Cargar el modelo H5
 try:
     model = tf.keras.models.load_model(resource_path('modelo69.h5'), compile=False)
 except Exception as e:
@@ -54,7 +52,6 @@ except Exception as e:
         model = None
         print("Error cargando modelo:", e)
 
-# Definir SURF
 SURF = {
     "O": (0.33, 0.33, 0.34, 0.34),
     "M": (0.00, 0.33, 0.33, 0.34),
@@ -65,22 +62,17 @@ SURF = {
 
 def add_rounded_corners(img, radius=20):
     """Agrega esquinas redondeadas a una imagen PIL"""
-    # Convertir a RGBA si no lo está
     if img.mode != 'RGBA':
         img = img.convert('RGBA')
     
-    # Crear máscaras para las esquinas redondeadas
     width, height = img.size
     
-    # Crear una imagen con fondo transparente
     mask = Image.new('L', (width, height), 0)
     from PIL import ImageDraw
     draw = ImageDraw.Draw(mask)
     
-    # Dibujar un rectángulo redondeado blanco (opaco)
     draw.rounded_rectangle([(0, 0), (width, height)], radius=radius, fill=255)
     
-    # Aplicar la máscara a la imagen
     img.putalpha(mask)
     return img
 
@@ -148,23 +140,20 @@ class OdontogramApp:
         self.root.geometry("1750x950")
         self.root.configure(bg="#0f1419")
 
-        # Colores profesionales dentales
-        self.color_primary = "#1e5a96"      # Azul dental profesional
+        self.color_primary = "#1e5a96"
         self.color_primary_light = "#2d7ab8"
-        self.color_accent = "#4CAF50"       # Verde éxito
-        self.color_bg = "#0f1419"           # Fondo oscuro profesional
-        self.color_bg_secondary = "#1a202c" # Fondo secundario
-        self.color_text = "#e8eef5"         # Texto claro
-        self.color_text_dim = "#a0aec0"     # Texto tenue
+        self.color_accent = "#4CAF50"
+        self.color_bg = "#0f1419"
+        self.color_bg_secondary = "#1a202c"
+        self.color_text = "#e8eef5"
+        self.color_text_dim = "#a0aec0"
 
-        # Estilo ttk
         self.style = ttk.Style(root)
         try:
             self.style.theme_use('clam')
         except Exception:
             pass
         
-        # Configurar tema oscuro profesional
         self.style.configure('TFrame', background=self.color_bg)
         self.style.configure('Card.TFrame', background=self.color_bg_secondary, relief='flat')
         
@@ -185,14 +174,12 @@ class OdontogramApp:
         self.style.configure('TLabelFrame', background=self.color_bg, foreground=self.color_text, font=('Segoe UI', 11, 'bold'))
         self.style.configure('TLabelFrame.Label', background=self.color_bg, foreground=self.color_primary, font=('Segoe UI', 11, 'bold'))
 
-        # Header profesional con logos
         header_frame = tk.Frame(root, bg=self.color_primary)
         header_frame.pack(side='top', fill='x', padx=0, pady=0)
 
         header_inner = tk.Frame(header_frame, bg=self.color_primary)
         header_inner.pack(side='top', fill='x', padx=20, pady=12)
 
-        # Logo principal a la izquierda (más grande)
         try:
             logo_img = Image.open(resource_path('img/logo.png'))
             logo_img = logo_img.resize((250, 100), Image.Resampling.LANCZOS)
@@ -202,7 +189,6 @@ class OdontogramApp:
         except Exception as e:
             print(f"Error cargando logo principal: {e}")
 
-        # Título centrado
         title_frame = tk.Frame(header_inner, bg=self.color_primary)
         title_frame.pack(side='left', expand=True)
 
@@ -216,7 +202,6 @@ class OdontogramApp:
                                  background=self.color_primary, foreground='#b8d4f1')
         subtitle_label.pack(anchor='center', pady=(2, 0))
 
-        # Logo IES a la derecha
         try:
             ies_logo_img = Image.open(resource_path('img/logo_IESLomoDeLaHerradura_web.png'))
             ies_logo_img.thumbnail((200, 120), Image.Resampling.LANCZOS)
@@ -226,7 +211,6 @@ class OdontogramApp:
         except Exception as e:
             print(f"Error cargando logo IES: {e}")
 
-        # Panel de control mejorado
         ctrl_frame = ttk.Frame(root)
         ctrl_frame.pack(side='top', fill='x', padx=15, pady=12)
 
@@ -257,11 +241,9 @@ class OdontogramApp:
         self.label_estado = ttk.Label(btn_frame_row1, text='⊙ Sin imágenes cargadas', style='Status.TLabel')
         self.label_estado.pack(side='left', padx=15)
 
-        # Frame principal con editor de imagen
         main_frame = ttk.Frame(root)
         main_frame.pack(fill='both', expand=True, padx=15, pady=(8,15))
 
-        # Imagen para dibujar
         left_frame = ttk.LabelFrame(main_frame, text='', padding=10)
         left_frame.pack(side='top', fill='both', expand=True, pady=(0, 12))
 
@@ -273,7 +255,6 @@ class OdontogramApp:
         self.canvas.bind("<B1-Motion>", self.dibujar_rect)
         self.canvas.bind("<ButtonRelease-1>", self.finalizar_rect)
 
-        # Status bar profesional
         status_frame = tk.Frame(root, bg=self.color_bg_secondary)
         status_frame.pack(side='bottom', fill='x', padx=0, pady=0)
         
@@ -283,7 +264,6 @@ class OdontogramApp:
         self.status_label = ttk.Label(status_inner, text='ℹ️  Selecciona piezas dentales dibujando rectángulos sobre ellas', style='Info.TLabel')
         self.status_label.pack(side='left')
 
-        # Footer con imágenes institucionales separadas
         footer_frame = tk.Frame(root, bg=self.color_bg)
         footer_frame.pack(side='bottom', fill='x', padx=0, pady=0)
         
@@ -293,7 +273,6 @@ class OdontogramApp:
         footer_right = tk.Frame(footer_frame, bg=self.color_bg)
         footer_right.pack(side='right', fill='x', expand=True, padx=(0, 20), pady=10)
         
-        # Cargar imagen MEFPD en el pie izquierdo
         self.footer_images = []
         try:
             img_left = Image.open(resource_path('img/MEFPD.gif'))
@@ -305,7 +284,6 @@ class OdontogramApp:
         except Exception as e:
             print(f"Error cargando img/MEFPD.gif: {e}")
         
-        # Cargar imagen Redes_ensenanzas en el pie derecho
         try:
             img_right = Image.open(resource_path('img/Redes_ensenanzas.jpg'))
             img_right.thumbnail((140, 80), Image.Resampling.LANCZOS)
@@ -316,7 +294,6 @@ class OdontogramApp:
         except Exception as e:
             print(f"Error cargando img/Redes_ensenanzas.jpg: {e}")
 
-        # Atajos de teclado
         self.root.bind('<Left>', lambda e: self.imagen_anterior())
         self.root.bind('<Right>', lambda e: self.imagen_siguiente())
         self.root.bind('<Delete>', lambda e: self.limpiar_imagen_actual())
@@ -388,7 +365,6 @@ class OdontogramApp:
         if not self.imagenes:
             return
         
-        # Mostrar imagen
         img_tk = self.tk_imagenes[self.indice]
         canvas_w = self.canvas.winfo_width()
         canvas_h = self.canvas.winfo_height()
@@ -397,22 +373,19 @@ class OdontogramApp:
         else:
             self.canvas.create_image(0, 0, anchor="nw", image=img_tk)
         
-        # Mostrar boxes con colores profesionales
         colores_pieza = {
-            0: "#4CAF50",      # Verde - Normal
-            1: "#FF5722",      # Rojo - Sarro
-            2: "#FFC107",      # Amarillo - Mancha
-            3: "#2196F3"       # Azul - Otro
+            0: "#4CAF50",
+            1: "#FF5722",
+            2: "#FFC107",
+            3: "#2196F3"
         }
         
         for box in self.boxes_por_imagen[self.indice]:
             x1, y1, x2, y2, clase, num = box
             color = colores_pieza.get(clase, "#4CAF50")
             
-            # Dibujar rectángulo
             self.canvas.create_rectangle(x1, y1, x2, y2, outline=color, width=3)
             
-            # Etiqueta con información
             self.canvas.create_rectangle(x1, y1-22, x1+45, y1, fill=color, outline=color)
             self.canvas.create_text(x1+22, y1-11, text=f"#{num}", anchor="center", 
                                    fill="white", font=("Segoe UI", 10, "bold"))
@@ -429,11 +402,9 @@ class OdontogramApp:
         self.odontograma_window.geometry("1400x700")
         self.odontograma_window.configure(bg=self.color_bg)
         
-        # Canvas para odontograma
         self.canvas_odontograma_ventana = tk.Canvas(self.odontograma_window, bg='#1a202c', bd=0, highlightthickness=2, highlightbackground=self.color_primary)
         self.canvas_odontograma_ventana.pack(fill='both', expand=True, padx=20, pady=20)
         
-        # Frame para controles
         ctrl_frame_ventana = ttk.Frame(self.odontograma_window)
         ctrl_frame_ventana.pack(fill='x', padx=20, pady=(0,20))
         
@@ -497,24 +468,21 @@ class OdontogramApp:
                 x1, y1, x2, y2, clase, num = box
                 class_to_marks = {
                     0: {},
-                    1: {"O": "#FF5722"},    # Rojo - Sarro
-                    2: {"O": "#FFC107"},    # Amarillo - Mancha
-                    3: {"O": "#2196F3"}     # Azul - Otro (oclusal)
+                    1: {"O": "#FF5722"},
+                    2: {"O": "#FFC107"},
+                    3: {"O": "#2196F3"}
                 }
                 marks = class_to_marks.get(clase, {})
                 marks_by_tooth[num] = marks
         
-        # Guardar el diente seleccionado actualmente
         diente_actual = self.tooth_combo_odontograma.get()
         
-        # Actualizar combo
         if self.indice < len(self.boxes_por_imagen):
             nums = [box[5] for box in self.boxes_por_imagen[self.indice]]
         else:
             nums = []
         self.tooth_combo_odontograma['values'] = sorted(set(nums))
         
-        # Restaurar el diente seleccionado si sigue existiendo, si no, selecciona el primero
         if diente_actual and diente_actual in self.tooth_combo_odontograma['values']:
             self.tooth_combo_odontograma.set(diente_actual)
         elif nums:
@@ -522,21 +490,17 @@ class OdontogramApp:
         else:
             self.tooth_combo_odontograma.set('')
         
-        # Crear figura
         fig = create_odontogram_figure(marks_by_tooth)
         fig.set_facecolor('#1a202c')
         fig.patch.set_alpha(1.0)
         
-        # Limpiar canvas anterior
         if hasattr(self, 'canvas_agg_ventana'):
             self.canvas_agg_ventana.get_tk_widget().destroy()
         
-        # Crear canvas de matplotlib
         self.canvas_agg_ventana = FigureCanvasTkAgg(fig, master=self.canvas_odontograma_ventana)
         self.canvas_agg_ventana.draw()
         self.canvas_agg_ventana.get_tk_widget().pack(fill='both', expand=True)
         
-        # Conectar clic en el odontograma para seleccionar la pieza
         if hasattr(self, 'cid_odontograma_click'):
             try:
                 self.canvas_agg_ventana.mpl_disconnect(self.cid_odontograma_click)
@@ -573,13 +537,11 @@ class OdontogramApp:
         x2 = max(self.start_x, event.x)
         y2 = max(self.start_y, event.y)
         
-        # Validar tamaño mínimo
         if x2 - x1 < 15 or y2 - y1 < 15:
             messagebox.showwarning("Área muy pequeña", "El rectángulo debe ser más grande")
             self.rect = None
             return
         
-        # Crop
         img = self.imagenes[self.indice]
         h, w = img.shape[:2]
         img_tk = self.tk_imagenes[self.indice]
@@ -587,7 +549,6 @@ class OdontogramApp:
         canvas_w = self.canvas.winfo_width()
         canvas_h = self.canvas.winfo_height()
 
-        # Imagen centrada en el canvas
         offset_x = max((canvas_w - img_w) // 2, 0)
         offset_y = max((canvas_h - img_h) // 2, 0)
 
@@ -612,26 +573,21 @@ class OdontogramApp:
             self.rect = None
             return
         
-        # Predict
         predicted_class = 0
         if model is not None and feature_extractor is not None:
             try:
-                # Preprocesar imagen para VGG16
                 crop_vgg = cv2.resize(crop, (224, 224))
                 crop_vgg = cv2.cvtColor(crop_vgg, cv2.COLOR_BGR2RGB)
                 crop_vgg = preprocess_input(np.expand_dims(crop_vgg, axis=0))
                 
-                # Extraer características con VGG16
                 features = feature_extractor.predict(crop_vgg, verbose=0)
                 
-                # Usar características como entrada para el modelo entrenado
                 prediction = model.predict(features, verbose=0)
                 predicted_class = np.argmax(prediction[0])
             except Exception as e:
                 print(f"Error en predicción: {e}")
         elif model is not None:
             try:
-                # Fallback: usar el método original si VGG16 falla
                 crop_resized = cv2.resize(crop, (128, 128))
                 crop_norm = np.expand_dims(crop_resized, axis=0) / 255.0
                 prediction = model.predict(crop_norm, verbose=0)
@@ -640,7 +596,6 @@ class OdontogramApp:
             except Exception as e:
                 print(f"Error en predicción fallback: {e}")
         
-        # Pedir número del diente con validación mejorada
         num = simpledialog.askinteger("Número FDI", 
                                      "Ingresa el número FDI de la pieza:\n\n11-18 (cuadrante 1)\n21-28 (cuadrante 2)\n31-38 (cuadrante 3)\n41-48 (cuadrante 4)")
         
@@ -676,5 +631,5 @@ class OdontogramApp:
 
 root = tk.Tk()
 app = OdontogramApp(root)
-root.state('zoomed')  # Maximizar la ventana por defecto
+root.state('zoomed')
 root.mainloop()
