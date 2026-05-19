@@ -26,6 +26,7 @@ class DenseWithQuantization(tf.keras.layers.Dense):
         super().__init__(*args, **kwargs)
         self.quantization_config = quantization_config
 
+# Cargar modelo VGG16 para extracción de características
 try:
     base_model = VGG16(weights='imagenet', include_top=True)
     feature_extractor = Model(inputs=base_model.input,
@@ -580,8 +581,10 @@ class OdontogramApp:
                 crop_vgg = cv2.cvtColor(crop_vgg, cv2.COLOR_BGR2RGB)
                 crop_vgg = preprocess_input(np.expand_dims(crop_vgg, axis=0))
                 
+                # Extraer características con VGG16
                 features = feature_extractor.predict(crop_vgg, verbose=0)
                 
+                # Realizar predicción con el modelo cargado
                 prediction = model.predict(features, verbose=0)
                 predicted_class = np.argmax(prediction[0])
             except Exception as e:
